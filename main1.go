@@ -1,0 +1,115 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"reflect"
+	"time"
+)
+
+var (
+	currentState int
+	functions    map[string]interface{}
+)
+
+type FSM struct {
+	StartingState     int                  `json:"startingState"`
+	StatesWithActions [][]stateWithActions `json:"statesWithActions"`
+}
+
+type stateWithActions struct {
+	State   int      `json:"state"`
+	Actions []action `json:"actions"`
+}
+
+type action struct {
+	Name   string `json:"name"`
+	Params []int  `json:"params"`
+}
+
+func main() {
+	//считывание json
+	file, err := ioutil.ReadFile("example.json")
+	check(err)
+	fsm := FSM{}
+	err = json.Unmarshal(file, &fsm)
+	check(err)
+
+	//мапа функций
+	functions = map[string]interface{}{
+		"pickUp":      pickUp,
+		"pickDown":    pickDown,
+		"turnOnLight": turnOnLight,
+	}
+
+	k := make(chan int)
+	go generateEvent(k)
+	fsm.startFSM(k)
+}
+
+func (data *FSM) startFSM(ch chan int) {
+	for {
+		event := <-ch
+		currentNode := data.StatesWithActions[currentState][event]
+		currentState = currentNode.State
+		for _, v := range currentNode.Actions {
+			_, err := call(functions, v.Name, v.Params)
+			check(err)
+		}
+	}
+}
+
+func call(m map[string]interface{}, name string, params []int) (result []reflect.Value, err error) {
+	f := reflect.ValueOf(m[name])
+	if len(params) != f.Type().NumIn() {
+		err = errors.New("The number of params is not adapted.")
+		return
+	}
+	in := make([]reflect.Value, len(params))
+	for k, param := range params {
+		in[k] = reflect.ValueOf(param)
+	}
+	result = f.Call(in)
+	return
+}
+
+//мапа "имя функции" - функция
+//далее slice функций строится либо типа interface{} (реализация будет через рефлексию),
+//либо конкретный интерфейс (для каждой функции должен быть создан тип func)
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+// есть два вида функций: совершающие считывание данных с реального мира, вызывающие определенные
+// события, и контролирующие устройства(поднять, опустить..).
+
+//первый вид, абстрактный пример
+func generateEvent(ch chan int) {
+	for {
+		//3 - число максимально возможных событий
+		rand := rand.Intn(3)
+		ch <- rand
+		fmt.Printf("%d was generated\n", rand)
+		time.Sleep(5 * time.Second)
+	}
+}
+
+//второй вид функций
+
+func pickUp() {
+	fmt.Println("action: pickUp")
+}
+
+func pickDown() {
+	fmt.Println("action: pickDown")
+}
+
+func turnOnLight() {
+	fmt.Println("action: turnOnLight")
+}

@@ -1,0 +1,38 @@
+{
+    "startingState": 1,
+    "statesWithActions": [
+        [
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]}
+        ],
+        [
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]}
+        ],
+        [
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]},
+            {"state":1, "actions":[
+                {"name":"pickUp", "params":[]},
+                {"name":"pickDown", "params":[]}]}
+        ]
+    ]
+}
