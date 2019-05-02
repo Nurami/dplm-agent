@@ -13,6 +13,7 @@ import (
 var (
 	currentState int
 	functions    map[string]interface{}
+	events       map[string]int
 )
 
 type FSM struct {
@@ -98,6 +99,14 @@ func generateEvent(ch chan int) {
 		fmt.Printf("%d was generated\n", rand)
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func genEvent1() {
+
+}
+
+func genEvent2() {
+
 }
 
 //второй вид функций
