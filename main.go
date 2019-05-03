@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"reflect"
+	"runtime"
+	"strings"
 )
 
 var (
@@ -63,6 +65,14 @@ func call(m map[string]interface{}, name string, params []int) (result []reflect
 	}
 	result = f.Call(in)
 	return
+}
+
+func getNameOfCurrentFunction() string {
+	pc := make([]uintptr, 10)
+	runtime.Callers(2, pc)
+	f := runtime.FuncForPC(pc[0])
+	values := strings.Split(f.Name(), ".")
+	return values[len(values)-1]
 }
 
 //мапа "имя функции" - функция

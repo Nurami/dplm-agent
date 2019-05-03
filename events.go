@@ -23,7 +23,7 @@ func generateEvent(ch chan int) {
 }
 
 func genEvent1() {
-
+	//ch <- events[getNameOfCurrentFunction()}]
 }
 
 func genEvent2() {
