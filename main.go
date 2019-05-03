@@ -11,6 +11,7 @@ import (
 
 var (
 	currentState int
+	mainChannel  chan int
 )
 
 type FSM struct {
@@ -36,14 +37,16 @@ func main() {
 	err = json.Unmarshal(file, &fsm)
 	check(err)
 
-	k := make(chan int)
-	go generateEvent(k)
-	fsm.startFSM(k)
+	mainChannel = make(chan int)
+
+	go genEvent1()
+	go genEvent2()
+	fsm.startFSM()
 }
 
-func (data *FSM) startFSM(ch chan int) {
+func (data *FSM) startFSM() {
 	for {
-		event := <-ch
+		event := <-mainChannel
 		currentNode := data.StatesWithActions[currentState][event]
 		currentState = currentNode.State
 		for _, v := range currentNode.Actions {

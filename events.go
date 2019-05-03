@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -11,21 +10,20 @@ var events = map[string]int{
 	"genEvent2": 2,
 }
 
-//первый вид, абстрактный пример
-func generateEvent(ch chan int) {
+func genEvent1() {
 	for {
-		//3 - число максимально возможных событий
-		rand := rand.Intn(3)
-		ch <- rand
-		fmt.Printf("%d was generated\n", rand)
 		time.Sleep(5 * time.Second)
+		nameOfFunc := getNameOfCurrentFunction()
+		fmt.Println(nameOfFunc)
+		mainChannel <- events[nameOfFunc]
 	}
 }
 
-func genEvent1() {
-	//ch <- events[getNameOfCurrentFunction()}]
-}
-
 func genEvent2() {
-
+	for {
+		time.Sleep(2 * time.Second)
+		nameOfFunc := getNameOfCurrentFunction()
+		fmt.Println(nameOfFunc)
+		mainChannel <- events[nameOfFunc]
+	}
 }
