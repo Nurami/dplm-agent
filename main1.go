@@ -3,14 +3,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"reflect"
 )
 
 var (
 	currentState int
-	functions    map[string]interface{}
 	events       map[string]int
 )
 
@@ -36,13 +34,6 @@ func main() {
 	fsm := FSM{}
 	err = json.Unmarshal(file, &fsm)
 	check(err)
-
-	//мапа функций
-	functions = map[string]interface{}{
-		"pickUp":      pickUp,
-		"pickDown":    pickDown,
-		"turnOnLight": turnOnLight,
-	}
 
 	k := make(chan int)
 	go generateEvent(k)
@@ -87,17 +78,3 @@ func check(err error) {
 
 // есть два вида функций: совершающие считывание данных с реального мира, вызывающие определенные
 // события, и контролирующие устройства(поднять, опустить..).
-
-//второй вид функций
-
-func pickUp() {
-	fmt.Println("action: pickUp")
-}
-
-func pickDown() {
-	fmt.Println("action: pickDown")
-}
-
-func turnOnLight() {
-	fmt.Println("action: turnOnLight")
-}
