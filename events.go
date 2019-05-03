@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+var events = map[string]int{
+	"genEvent1": 1,
+	"genEvent2": 2,
+}
+
 //первый вид, абстрактный пример
 func generateEvent(ch chan int) {
 	for {

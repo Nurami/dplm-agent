@@ -9,7 +9,6 @@ import (
 
 var (
 	currentState int
-	events       map[string]int
 )
 
 type FSM struct {
