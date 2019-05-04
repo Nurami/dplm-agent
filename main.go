@@ -30,13 +30,8 @@ type action struct {
 }
 
 func main() {
-	//считывание json
-	file, err := ioutil.ReadFile("example.json")
-	if err != nil {
-		panic(err)
-	}
 	fsm := FSM{}
-	err = json.Unmarshal(file, &fsm)
+	err := fsm.createFromJSONFile("example.json")
 	if err != nil {
 		panic(err)
 	}
@@ -48,10 +43,10 @@ func main() {
 	fsm.startFSM()
 }
 
-func (data *FSM) startFSM() {
+func (fsm *FSM) startFSM() {
 	for {
 		event := <-mainChannel
-		currentNode := data.StatesWithActions[currentState][event]
+		currentNode := fsm.StatesWithActions[currentState][event]
 		currentState = currentNode.State
 		for _, v := range currentNode.Actions {
 			_, err := call(functions, v.Name, v.Params)
@@ -82,6 +77,18 @@ func getNameOfCurrentFunction() string {
 	f := runtime.FuncForPC(pc[0])
 	values := strings.Split(f.Name(), ".")
 	return values[len(values)-1]
+}
+
+func (fsm *FSM) createFromJSONFile(filename string) (err error) {
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(file, &fsm)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //мапа "имя функции" - функция
