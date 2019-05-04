@@ -32,10 +32,14 @@ type action struct {
 func main() {
 	//считывание json
 	file, err := ioutil.ReadFile("example.json")
-	check(err)
+	if err != nil {
+		panic(err)
+	}
 	fsm := FSM{}
 	err = json.Unmarshal(file, &fsm)
-	check(err)
+	if err != nil {
+		panic(err)
+	}
 
 	mainChannel = make(chan int)
 
@@ -51,7 +55,9 @@ func (data *FSM) startFSM() {
 		currentState = currentNode.State
 		for _, v := range currentNode.Actions {
 			_, err := call(functions, v.Name, v.Params)
-			check(err)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }
@@ -81,12 +87,6 @@ func getNameOfCurrentFunction() string {
 //мапа "имя функции" - функция
 //далее slice функций строится либо типа interface{} (реализация будет через рефлексию),
 //либо конкретный интерфейс (для каждой функции должен быть создан тип func)
-
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
 
 // есть два вида функций: совершающие считывание данных с реального мира, вызывающие определенные
 // события, и контролирующие устройства(поднять, опустить..).
