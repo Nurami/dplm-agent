@@ -3,15 +3,26 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/op/go-logging"
 )
 
 var (
 	currentState int
 	mainChannel  chan int
+	log          = logging.MustGetLogger("logger")
+	logsFormat   = logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	)
+	mutex = &sync.Mutex{}
 )
 
 type FSM struct {
@@ -30,17 +41,45 @@ type action struct {
 }
 
 func main() {
-	fsm := FSM{}
-	err := fsm.createFromJSONFile("example.json")
-	if err != nil {
-		panic(err)
+	count := 0
+	go logByPeriod(10)
+	time.Sleep(5 * time.Second)
+	for {
+		log.Info("The count is", count)
+		count++
+		time.Sleep(2 * time.Second)
 	}
+	// fsm := FSM{}
+	// err := fsm.createFromJSONFile("example.json")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	mainChannel = make(chan int)
+	// mainChannel = make(chan int)
 
-	go genEvent1()
-	go genEvent2()
-	fsm.startFSM()
+	// go genEvent1()
+	// go genEvent2()
+	// fsm.startFSM()
+}
+
+func logByPeriod(duration int) {
+	if _, err := os.Stat("logs"); os.IsNotExist(err) {
+		os.Mkdir("logs", 0755)
+	}
+	for {
+		logsName := "logs/" + time.Now().Format("2006.01.02-15.04.05") + ".log"
+		//TODO: добавить возможность логирования без логфайла (обработка ошибки)
+		file, err := os.Create(logsName)
+		fmt.Println(err)
+		mutex.Lock()
+		log = logging.MustGetLogger(logsName)
+		backend := logging.NewLogBackend(file, "", 0)
+		backendFormatter := logging.NewBackendFormatter(backend, logsFormat)
+		logging.SetBackend(backendFormatter)
+		mutex.Unlock()
+		time.Sleep(time.Duration(duration) * time.Second)
+		file.Close()
+	}
 }
 
 func (fsm *FSM) startFSM() {
@@ -82,11 +121,11 @@ func getNameOfCurrentFunction() string {
 func (fsm *FSM) createFromJSONFile(filename string) (err error) {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
+		return
 	}
 	err = json.Unmarshal(file, &fsm)
 	if err != nil {
-		return err
+		return
 	}
 	return nil
 }
