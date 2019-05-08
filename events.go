@@ -12,6 +12,7 @@ var events = map[string]int{
 
 func genEvent1() {
 	for {
+		log.Info("genEvent1 generates")
 		time.Sleep(5 * time.Second)
 		nameOfFunc := getNameOfCurrentFunction()
 		fmt.Println(nameOfFunc)
@@ -21,6 +22,7 @@ func genEvent1() {
 
 func genEvent2() {
 	for {
+		log.Info("genEvent2 generates")
 		time.Sleep(2 * time.Second)
 		nameOfFunc := getNameOfCurrentFunction()
 		fmt.Println(nameOfFunc)

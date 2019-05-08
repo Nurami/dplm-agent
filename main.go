@@ -42,11 +42,14 @@ type action struct {
 
 func main() {
 	go logByPeriod(10)
+	//TODO: обдумать и реализовать ожидание(waitgroup?), если это возможно
+	//Главному потоку Необходимо поспать, чтобы переменная логирования успела инициализироваться
+	time.Sleep(time.Second)
 
 	fsm := FSM{}
 	err := fsm.createFromJSONFile("example.json")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	mainChannel = make(chan int)
@@ -65,12 +68,16 @@ func logByPeriod(duration int) {
 	}
 	for {
 		logsName := "logs/" + time.Now().Format("2006.01.02-15.04.05") + ".log"
-		//TODO: добавить возможность логирования без логфайла (обработка ошибки)
 		file, err := os.Create(logsName)
-		fmt.Println(err)
 		mutex.Lock()
 		log = logging.MustGetLogger(logsName)
-		backend := logging.NewLogBackend(file, "", 0)
+		var backend *logging.LogBackend
+		if err != nil {
+			fmt.Println(time.Now(), " ", err)
+			backend = logging.NewLogBackend(os.Stdout, "", 0)
+		} else {
+			backend = logging.NewLogBackend(file, "", 0)
+		}
 		backendFormatter := logging.NewBackendFormatter(backend, logsFormat)
 		logging.SetBackend(backendFormatter)
 		mutex.Unlock()
