@@ -20,7 +20,7 @@ var (
 	mainChannel  chan int
 	log          = logging.MustGetLogger("logger")
 	logsFormat   = logging.MustStringFormatter(
-		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+		`%{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
 	)
 	mutex = &sync.Mutex{}
 )
@@ -41,26 +41,23 @@ type action struct {
 }
 
 func main() {
-	count := 0
 	go logByPeriod(10)
-	time.Sleep(5 * time.Second)
-	for {
-		log.Info("The count is", count)
-		count++
-		time.Sleep(2 * time.Second)
+
+	fsm := FSM{}
+	err := fsm.createFromJSONFile("example.json")
+	if err != nil {
+		panic(err)
 	}
-	// fsm := FSM{}
-	// err := fsm.createFromJSONFile("example.json")
-	// if err != nil {
-	// 	panic(err)
-	// }
 
-	// mainChannel = make(chan int)
+	mainChannel = make(chan int)
 
-	// go genEvent1()
-	// go genEvent2()
-	// fsm.startFSM()
+	go genEvent1()
+	go genEvent2()
+	fsm.startFSM()
 }
+
+//TODO: удаление отправленных файлов
+//TODO: отправка данных на сервер
 
 func logByPeriod(duration int) {
 	if _, err := os.Stat("logs"); os.IsNotExist(err) {
