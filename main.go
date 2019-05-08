@@ -49,7 +49,7 @@ func main() {
 	fsm := FSM{}
 	err := fsm.createFromJSONFile("example.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	mainChannel = make(chan int)
@@ -94,7 +94,7 @@ func (fsm *FSM) startFSM() {
 		for _, v := range currentNode.Actions {
 			_, err := call(functions, v.Name, v.Params)
 			if err != nil {
-				panic(err)
+				log.Panic(err)
 			}
 		}
 	}
@@ -103,7 +103,7 @@ func (fsm *FSM) startFSM() {
 func call(m map[string]interface{}, name string, params []int) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
 	if len(params) != f.Type().NumIn() {
-		err = errors.New("The number of params is not adapted.")
+		err = errors.New("Число параметров не верно в функции " + name)
 		return
 	}
 	in := make([]reflect.Value, len(params))
