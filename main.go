@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
 	"runtime"
@@ -19,12 +20,15 @@ var (
 	currentState int
 	mainChannel  chan int
 	log          = logging.MustGetLogger("logger")
-	logsFormat   = logging.MustStringFormatter(
+	//TODO: впихнуть необходим номер агента
+	logsFormat = logging.MustStringFormatter(
 		`%{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
 	)
 	mutex = &sync.Mutex{}
+	url   = ""
 )
 
+//FSM - это структура, описывающая конечный автомат
 type FSM struct {
 	StartingState     int                  `json:"startingState"`
 	StatesWithActions [][]stateWithActions `json:"statesWithActions"`
@@ -131,6 +135,38 @@ func (fsm *FSM) createFromJSONFile(filename string) (err error) {
 	if err != nil {
 		return
 	}
+	return nil
+}
+
+func sendLogsToServerByPeriod(ip string, period int) {
+	files, err := ioutil.ReadDir("logs/")
+	//TODO: обработка ошибки
+	if err != nil {
+	}
+	for i := 0; i < len(files)-1; i++ {
+		filename := files[i].Name()
+		err = upload(filename)
+		//TODO: обработка ошибки
+		if err != nil {
+		}
+	}
+}
+
+func upload(filename string) error {
+	file, err := os.Open(filename)
+	//TODO: обработка ошибки
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	resp, err := http.Post(url, "binary/octet-stream", file)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	message, _ := ioutil.ReadAll(resp.Body)
+	fmt.Printf(string(message))
+	//TODO: возврат ошибки
 	return nil
 }
 
