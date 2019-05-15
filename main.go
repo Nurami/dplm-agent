@@ -63,9 +63,6 @@ func main() {
 	fsm.startFSM()
 }
 
-//TODO: удаление отправленных файлов
-//TODO: отправка данных на сервер
-
 func logByPeriod(duration int) {
 	if _, err := os.Stat("logs"); os.IsNotExist(err) {
 		os.Mkdir("logs", 0755)
@@ -138,35 +135,37 @@ func (fsm *FSM) createFromJSONFile(filename string) (err error) {
 	return nil
 }
 
+//TODO: удаление отправленных файлов
+//TODO: отправка данных на сервер
+
 func sendLogsToServerByPeriod(ip string, period int) {
 	files, err := ioutil.ReadDir("logs/")
-	//TODO: обработка ошибки
 	if err != nil {
+		log.Critical(err)
 	}
 	for i := 0; i < len(files)-1; i++ {
 		filename := files[i].Name()
 		err = upload(filename)
-		//TODO: обработка ошибки
 		if err != nil {
+			log.Critical(err)
 		}
 	}
 }
 
 func upload(filename string) error {
 	file, err := os.Open(filename)
-	//TODO: обработка ошибки
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer file.Close()
 	resp, err := http.Post(url, "binary/octet-stream", file)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 	message, _ := ioutil.ReadAll(resp.Body)
-	fmt.Printf(string(message))
-	//TODO: возврат ошибки
+	//TODO: убрать фмт и в лог
+	fmt.Println(string(message))
 	return nil
 }
 
