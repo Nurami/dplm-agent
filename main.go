@@ -25,7 +25,7 @@ var (
 		`%{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
 	)
 	mutex = &sync.Mutex{}
-	url   = ""
+	url   = "http://localhost:8080/logs"
 )
 
 //FSM - это структура, описывающая конечный автомат
@@ -45,25 +45,29 @@ type action struct {
 }
 
 func main() {
-	go logByPeriod(10)
+	go logToANewFileByPeriod(10)
 	//TODO: обдумать и реализовать ожидание(waitgroup?), если это возможно
 	//Главному потоку Необходимо поспать, чтобы переменная логирования успела инициализироваться
 	time.Sleep(time.Second)
 
-	fsm := FSM{}
-	err := fsm.createFromJSONFile("example.json")
+	err := upload("problems")
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
+	// fsm := FSM{}
+	// err := fsm.createFromJSONFile("example.json")
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 
-	mainChannel = make(chan int)
+	// mainChannel = make(chan int)
 
-	go genEvent1()
-	go genEvent2()
-	fsm.startFSM()
+	// go genEvent1()
+	// go genEvent2()
+	// fsm.startFSM()
 }
 
-func logByPeriod(duration int) {
+func logToANewFileByPeriod(period int) {
 	if _, err := os.Stat("logs"); os.IsNotExist(err) {
 		os.Mkdir("logs", 0755)
 	}
@@ -82,7 +86,7 @@ func logByPeriod(duration int) {
 		backendFormatter := logging.NewBackendFormatter(backend, logsFormat)
 		logging.SetBackend(backendFormatter)
 		mutex.Unlock()
-		time.Sleep(time.Duration(duration) * time.Second)
+		time.Sleep(time.Duration(period) * time.Second)
 		file.Close()
 	}
 }
@@ -135,20 +139,25 @@ func (fsm *FSM) createFromJSONFile(filename string) (err error) {
 	return nil
 }
 
-//TODO: удаление отправленных файлов
-//TODO: отправка данных на сервер
-
-func sendLogsToServerByPeriod(ip string, period int) {
-	files, err := ioutil.ReadDir("logs/")
-	if err != nil {
-		log.Critical(err)
-	}
-	for i := 0; i < len(files)-1; i++ {
-		filename := files[i].Name()
-		err = upload(filename)
+func sendLogsToServerByPeriod(period int) {
+	for {
+		files, err := ioutil.ReadDir("logs/")
 		if err != nil {
 			log.Critical(err)
 		}
+		for i := 0; i < len(files)-1; i++ {
+			filename := files[i].Name()
+			err = upload(filename)
+			if err != nil {
+				log.Critical(err)
+			} else {
+				err = os.Remove("logs/" + filename)
+				if err != nil {
+					log.Critical(err)
+				}
+			}
+		}
+		time.Sleep(time.Duration(period) * time.Second)
 	}
 }
 
