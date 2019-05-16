@@ -16,14 +16,14 @@ import (
 	"github.com/op/go-logging"
 )
 
-const agentNum = "0"
+const agentID = "0"
 
 var (
 	currentState int
 	mainChannel  chan int
 	log          = logging.MustGetLogger("logger")
 	logsFormat   = logging.MustStringFormatter(
-		agentNum + ` %{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
+		agentID + ` %{time:2006-01-02 15:04:05} %{shortfunc} %{level:s} %{id:d} %{message}`,
 	)
 	mutex = &sync.Mutex{}
 	url   = "http://localhost:8080/logs"
@@ -50,22 +50,19 @@ func main() {
 	//TODO: обдумать и реализовать ожидание(waitgroup?), если это возможно
 	//Главному потоку Необходимо поспать, чтобы переменная логирования успела инициализироваться
 	time.Sleep(time.Second)
+	go sendLogsToServerByPeriod(20)
 
-	err := upload("problems")
+	fsm := FSM{}
+	err := fsm.createFromJSONFile("example.json")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
-	// fsm := FSM{}
-	// err := fsm.createFromJSONFile("example.json")
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
 
-	// mainChannel = make(chan int)
+	mainChannel = make(chan int)
 
-	// go genEvent1()
-	// go genEvent2()
-	// fsm.startFSM()
+	go genEvent1()
+	go genEvent2()
+	fsm.startFSM()
 }
 
 func logToANewFileByPeriod(period int) {
@@ -149,7 +146,7 @@ func sendLogsToServerByPeriod(period int) {
 		}
 		for i := 0; i < len(files)-1; i++ {
 			filename := files[i].Name()
-			err = upload(filename)
+			err = upload("logs/" + filename)
 			if err != nil {
 				log.Critical(err)
 			} else {
