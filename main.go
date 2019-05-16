@@ -16,13 +16,14 @@ import (
 	"github.com/op/go-logging"
 )
 
+const agentNum = "0"
+
 var (
 	currentState int
 	mainChannel  chan int
 	log          = logging.MustGetLogger("logger")
-	//TODO: впихнуть необходим номер агента
-	logsFormat = logging.MustStringFormatter(
-		`%{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
+	logsFormat   = logging.MustStringFormatter(
+		agentNum + ` %{time:15:04:05.000} %{shortfunc} %{level:s} %{id:d} %{message}`,
 	)
 	mutex = &sync.Mutex{}
 	url   = "http://localhost:8080/logs"
@@ -141,6 +142,7 @@ func (fsm *FSM) createFromJSONFile(filename string) (err error) {
 
 func sendLogsToServerByPeriod(period int) {
 	for {
+		time.Sleep(time.Duration(period) * time.Second)
 		files, err := ioutil.ReadDir("logs/")
 		if err != nil {
 			log.Critical(err)
@@ -157,7 +159,6 @@ func sendLogsToServerByPeriod(period int) {
 				}
 			}
 		}
-		time.Sleep(time.Duration(period) * time.Second)
 	}
 }
 
