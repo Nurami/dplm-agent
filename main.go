@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/op/go-logging"
+	"github.com/stianeikeland/go-rpio"
 )
 
 const agentID = "0"
@@ -29,7 +30,6 @@ var (
 	url   = "http://localhost:8080/logs"
 )
 
-//FSM - это структура, описывающая конечный автомат
 type FSM struct {
 	StartingState     int                  `json:"startingState"`
 	StatesWithActions [][]stateWithActions `json:"statesWithActions"`
@@ -46,14 +46,18 @@ type action struct {
 }
 
 func main() {
-	go logToANewFileByPeriod(10)
-	//TODO: обдумать и реализовать ожидание(waitgroup?), если это возможно
-	//Главному потоку Необходимо поспать, чтобы переменная логирования успела инициализироваться
+	go logToNewFileByPeriod(10)
 	time.Sleep(time.Second)
+
 	go sendLogsToServerByPeriod(20)
 
+	err := rpio.Open()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	fsm := FSM{}
-	err := fsm.createFromJSONFile("example.json")
+	err = fsm.createFromJSONFile("example.json")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -65,7 +69,7 @@ func main() {
 	fsm.startFSM()
 }
 
-func logToANewFileByPeriod(period int) {
+func logToNewFileByPeriod(period int) {
 	if _, err := os.Stat("logs"); os.IsNotExist(err) {
 		os.Mkdir("logs", 0755)
 	}
@@ -171,14 +175,6 @@ func upload(filename string) error {
 	}
 	defer resp.Body.Close()
 	message, _ := ioutil.ReadAll(resp.Body)
-	//TODO: убрать фмт и в лог
-	fmt.Println(string(message))
+	log.Info(string(message))
 	return nil
 }
-
-//мапа "имя функции" - функция
-//далее slice функций строится либо типа interface{} (реализация будет через рефлексию),
-//либо конкретный интерфейс (для каждой функции должен быть создан тип func)
-
-// есть два вида функций: совершающие считывание данных с реального мира, вызывающие определенные
-// события, и контролирующие устройства(поднять, опустить..).

@@ -1,29 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"github.com/stianeikeland/go-rpio"
+)
 
-//мапа функций
-var functions = map[string]interface{}{
-	"pickUp":      pickUp,
-	"pickDown":    pickDown,
-	"turnOnLight": turnOnLight,
-}
+var (
+	functions = map[string]interface{}{
+		"pickUp":      pickUp,
+		"pickDown":    pickDown,
+		"turnOnLight": turnOnLight,
+	}
+)
 
-//второй вид функций
 func pickUp() {
 	log.Info("pickUp starts 0")
-	fmt.Println("action: pickUp")
+	rpio.Pin(7).High()
 	log.Info("pickUp ends 0")
 }
 
 func pickDown() {
 	log.Info("pickDown starts 0")
-	fmt.Println("action: pickDown")
+	rpio.Pin(7).Low()
 	log.Info("pickDown ends 0")
 }
 
 func turnOnLight() {
 	log.Info("turnOnLight starts 0")
-	fmt.Println("action: turnOnLight")
+	rpio.Pin(11).High()
 	log.Info("turnOnLight ends 0")
 }

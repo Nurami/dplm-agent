@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -15,7 +14,6 @@ func genEvent1() {
 		log.Info("genEvent1 generates 1")
 		time.Sleep(5 * time.Second)
 		nameOfFunc := getNameOfCurrentFunction()
-		fmt.Println(nameOfFunc)
 		mainChannel <- events[nameOfFunc]
 	}
 }
@@ -25,7 +23,6 @@ func genEvent2() {
 		log.Info("genEvent2 generates 2")
 		time.Sleep(2 * time.Second)
 		nameOfFunc := getNameOfCurrentFunction()
-		fmt.Println(nameOfFunc)
 		mainChannel <- events[nameOfFunc]
 	}
 }
